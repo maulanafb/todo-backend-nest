@@ -1,41 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { tasks } from './data/tasks';
 import { UpdateTaskDTO } from './dto/update-task.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TaskService {
+  constructor(private prisma: PrismaService) {}
   async createTask(data: CreateTaskDTO) {
+    const createData = await this.prisma.tasks.create({
+      data: data,
+    });
     return {
-      statusCode: 200,
-      data,
+      statusCode: 201,
+      data: createData,
     };
   }
 
   async getAllTasks() {
+    const dataTask = await this.prisma.tasks.findMany();
     return {
       statusCode: 200,
-      data: tasks,
+      data: dataTask,
     };
   }
 
   async getTaskById(id: number) {
-    return {
-      statusCode: 200,
-      data: tasks.find((task) => task.task_id == id),
-    };
+    const task = await this.prisma.tasks.findFirst({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${id} not found`);
+    }
+
+    return task;
   }
+
   async updateTaskById(task_id: number, data: UpdateTaskDTO) {
-    return {
-      statusCode: 200,
-      data: data,
-    };
+    try {
+      const updatedTask = await this.prisma.tasks.update({
+        data: data,
+        where: {
+          id: task_id,
+        },
+      });
+
+      return {
+        statusCode: 200,
+        data: updatedTask,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          // Pengecualian untuk kasus ketika data tidak ditemukan
+          throw new NotFoundException(`Task with ID ${task_id} not found`);
+        }
+        // Tangani pengecualian Prisma lainnya jika diperlukan
+      }
+      // Tangani pengecualian umum
+      throw new Error('Failed to update task.');
+    }
   }
+
   async deleteTaskById(task_id: number) {
-    return {
-      statusCode: 200,
-      data: tasks.find((task) => task.task_id == task_id),
-      message: `Task ${task_id} deleted successfully`,
-    };
+    try {
+      const deleteTaskById = await this.prisma.tasks.delete({
+        where: {
+          id: task_id,
+        },
+      });
+
+      return {
+        statusCode: 200,
+        data: deleteTaskById,
+        message: 'Task deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          // Pengecualian untuk kasus ketika data tidak ditemukan
+          throw new NotFoundException(`Task with ID ${task_id} not found`);
+        }
+        // Tangani pengecualian Prisma lainnya jika diperlukan
+      }
+      // Tangani pengecualian umum
+      throw new Error('Failed to update task.');
+    }
   }
 }

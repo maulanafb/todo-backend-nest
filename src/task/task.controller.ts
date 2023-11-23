@@ -27,15 +27,15 @@ export class TaskController {
 
   @Get('/:task_id')
   async getTaskById(@Param('task_id') taskId) {
-    return this.taskService.getTaskById(taskId);
+    return this.taskService.getTaskById(+taskId);
   }
 
   @Patch('/:task_id')
   async updateTaskById(@Param('task_id') taskId, @Body() body: UpdateTaskDTO) {
-    return await this.taskService.updateTaskById(taskId, body);
+    return await this.taskService.updateTaskById(+taskId, body);
   }
   @Delete('/:task_id')
   async deleteTaskById(@Param('task_id') taskId) {
-    return await this.taskService.deleteTaskById(taskId);
+    return await this.taskService.deleteTaskById(+taskId);
   }
 }
