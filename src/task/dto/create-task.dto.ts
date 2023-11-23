@@ -8,4 +8,6 @@ export class CreateTaskDTO {
   @IsNotEmpty()
   @IsString()
   task_description: string;
+
+  id_user: number;
 }

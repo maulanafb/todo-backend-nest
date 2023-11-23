@@ -1,40 +1,53 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  HttpStatus,
+} from '@nestjs/common';
 import { CreateTaskDTO } from './dto/create-task.dto';
-import { tasks } from './data/tasks';
 import { UpdateTaskDTO } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { REQUEST } from '@nestjs/core';
 
 @Injectable()
 export class TaskService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(REQUEST) private req: any,
+  ) {}
   async createTask(data: CreateTaskDTO) {
+    data.id_user = this.req.user.id;
     const createData = await this.prisma.tasks.create({
       data: data,
     });
     return {
-      statusCode: 201,
+      statusCode: HttpStatus.CREATED,
       data: createData,
     };
   }
 
   async getAllTasks() {
-    const dataTask = await this.prisma.tasks.findMany();
+    const dataTask = await this.prisma.tasks.findMany({
+      where: {
+        id_user: this.req.user.id,
+      },
+    });
     return {
       statusCode: 200,
       data: dataTask,
     };
   }
 
-  async getTaskById(id: number) {
+  async getTaskById(task_id: number) {
     const task = await this.prisma.tasks.findFirst({
       where: {
-        id: id,
+        id: task_id,
+        id_user: this.req.user.id,
       },
     });
-
     if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException(`Task with ID ${task_id} not found`);
     }
 
     return task;
@@ -42,6 +55,7 @@ export class TaskService {
 
   async updateTaskById(task_id: number, data: UpdateTaskDTO) {
     try {
+      data.id_user = this.req.user.id;
       const updatedTask = await this.prisma.tasks.update({
         data: data,
         where: {

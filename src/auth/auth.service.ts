@@ -80,4 +80,51 @@ export class AuthService {
       );
     }
   }
+
+  async profile(user_id: number) {
+    const dataUser = await this.prisma.users.findFirst({
+      where: {
+        id: user_id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+      },
+    });
+    if (dataUser) {
+      return {
+        statusCode: HttpStatus.OK,
+        data: dataUser,
+      };
+    }
+
+    throw new HttpException(`User Not Found`, HttpStatus.NOT_FOUND);
+  }
+
+  async uploadAvatar(user_id: number, avatar) {
+    const checkUserExists = await this.prisma.users.findFirst({
+      where: {
+        id: user_id,
+      },
+    });
+    if (checkUserExists) {
+      const updateAvatar = await this.prisma.users.update({
+        data: {
+          avatar: avatar,
+        },
+        where: {
+          id: user_id,
+        },
+      });
+      if (updateAvatar) {
+        return {
+          statusCode: 200,
+          message: 'Upload Avatar Success',
+        };
+      }
+    }
+    throw new HttpException(`Bad Request`, HttpStatus.BAD_REQUEST);
+  }
 }
