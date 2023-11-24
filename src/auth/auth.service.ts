@@ -91,6 +91,7 @@ export class AuthService {
         name: true,
         email: true,
         avatar: true,
+        tasks: true,
       },
     });
     if (dataUser) {

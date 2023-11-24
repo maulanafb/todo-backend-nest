@@ -26,11 +26,20 @@ export class TaskService {
       data: createData,
     };
   }
-
   async getAllTasks() {
     const dataTask = await this.prisma.tasks.findMany({
       where: {
         id_user: this.req.user.id,
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            email: true,
+          },
+        },
       },
     });
     return {
@@ -38,7 +47,6 @@ export class TaskService {
       data: dataTask,
     };
   }
-
   async getTaskById(task_id: number) {
     const task = await this.prisma.tasks.findFirst({
       where: {
@@ -49,10 +57,8 @@ export class TaskService {
     if (!task) {
       throw new NotFoundException(`Task with ID ${task_id} not found`);
     }
-
     return task;
   }
-
   async updateTaskById(task_id: number, data: UpdateTaskDTO) {
     try {
       data.id_user = this.req.user.id;
@@ -62,7 +68,6 @@ export class TaskService {
           id: task_id,
         },
       });
-
       return {
         statusCode: 200,
         data: updatedTask,
@@ -70,24 +75,20 @@ export class TaskService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          // Pengecualian untuk kasus ketika data tidak ditemukan
           throw new NotFoundException(`Task with ID ${task_id} not found`);
         }
-        // Tangani pengecualian Prisma lainnya jika diperlukan
       }
-      // Tangani pengecualian umum
       throw new Error('Failed to update task.');
     }
   }
-
   async deleteTaskById(task_id: number) {
     try {
       const deleteTaskById = await this.prisma.tasks.delete({
         where: {
           id: task_id,
+          id_user: this.req.user.id,
         },
       });
-
       return {
         statusCode: 200,
         data: deleteTaskById,
@@ -96,12 +97,9 @@ export class TaskService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          // Pengecualian untuk kasus ketika data tidak ditemukan
           throw new NotFoundException(`Task with ID ${task_id} not found`);
         }
-        // Tangani pengecualian Prisma lainnya jika diperlukan
       }
-      // Tangani pengecualian umum
       throw new Error('Failed to update task.');
     }
   }
