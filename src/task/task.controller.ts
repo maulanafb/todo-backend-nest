@@ -12,7 +12,9 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Task')
 @Controller('task')
 export class TaskController {
   constructor(private taskService: TaskService) {}

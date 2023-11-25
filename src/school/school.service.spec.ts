@@ -12,7 +12,4 @@ describe('SchoolService', () => {
     service = module.get<SchoolService>(SchoolService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
 });

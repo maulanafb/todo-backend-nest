@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { join } from 'path';
 import { SchoolModule } from './school/school.module';
+import { LatihanModule } from './latihan/latihan.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SchoolModule } from './school/school.module';
       rootPath: join(__dirname, '..', 'public'),
     }),
     SchoolModule,
+    LatihanModule,
   ],
   controllers: [AppController],
   providers: [AppService],
